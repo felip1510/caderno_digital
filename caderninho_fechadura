@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Sistema Integrado</title>
+<style>
+body{font-family:Arial;background:#0f172a;color:white;margin:0}
+.menu{display:flex;justify-content:center;gap:20px;padding:20px;background:#1e293b}
+button{padding:10px;border:none;border-radius:8px;background:#2563eb;color:white;cursor:pointer}
+button:hover{background:#1d4ed8}
+.section{display:none;padding:20px}
+.container{background:#1e293b;padding:20px;border-radius:12px;max-width:500px;margin:auto}
+input{width:100%;padding:10px;margin-top:10px;border-radius:8px;border:none;background:#334155;color:white}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.lista{margin-top:15px;max-height:250px;overflow:auto}
+.alerta{background:#7f1d1d;padding:10px;margin-top:5px;border-radius:8px}
+.item{background:#1e40af;padding:10px;margin-top:5px;border-radius:8px}
+.row{display:flex;justify-content:center}
+.btn{width:60px;height:60px;margin:5px;border-radius:10px}
+.small{font-size:12px;opacity:.8}
+</style>
+</head>
+<body>
+
+<div class="menu">
+<button onclick="mostrar('manutencao')">Manutenção</button>
+<button onclick="mostrar('fechadura')">Fechadura</button>
+</div>
+
+<!-- MANUTENÇÃO -->
+<div id="manutencao" class="section">
+<div class="container">
+<h3>Manutenção</h3>
+
+<input id="nome" placeholder="Nome do Cliente">
+<input id="equipamento" placeholder="Equipamento">
+<input type="date" id="data">
+
+<div class="grid">
+<button onclick="addCliente()">Cadastrar</button>
+<button onclick="verAlertas()">Alertas</button>
+<button onclick="verInst()">Instalações</button>
+<button onclick="resetar()">Resetar</button>
+</div>
+
+<div id="res" class="lista"></div>
+</div>
+</div>
+
+<!-- FECHADURA -->
+<div id="fechadura" class="section">
+<div class="container">
+<h3>Fechadura</h3>
+<input id="display" disabled>
+<div class="row">
+<button class="btn" onclick="add('1')">1</button>
+<button class="btn" onclick="add('2')">2</button>
+<button class="btn" onclick="add('3')">3</button>
+</div>
+<div class="row">
+<button class="btn" onclick="add('4')">4</button>
+<button class="btn" onclick="add('5')">5</button>
+<button class="btn" onclick="add('6')">6</button>
+</div>
+<div class="row">
+<button class="btn" onclick="add('7')">7</button>
+<button class="btn" onclick="add('8')">8</button>
+<button class="btn" onclick="add('9')">9</button>
+</div>
+<div class="row">
+<button class="btn" onclick="limpar()">C</button>
+<button class="btn" onclick="add('0')">0</button>
+<button class="btn" onclick="verificar()">✔</button>
+</div>
+
+<div class="grid">
+<button onclick="modoTroca()">Trocar Senha</button>
+<button onclick="cancelarTroca()">Cancelar</button>
+</div>
+
+<div id="status"></div>
+<p class="small" id="hint"></p>
+</div>
+</div>
+
+<script>
+function mostrar(sec){
+ document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+ document.getElementById(sec).style.display='block';
+}
+mostrar('manutencao');
+
+// ===== MANUTENÇÃO =====
+let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+function salvar(){ localStorage.setItem('clientes', JSON.stringify(clientes)); }
+function addCliente(){
+ const nome = document.getElementById('nome').value;
+ const equipamento = document.getElementById('equipamento').value;
+ const data = document.getElementById('data').value;
+ const res = document.getElementById('res');
+ if(!nome || !equipamento || !data){ alert('Preencha todos os campos'); return; }
+ let dt = new Date(data + 'T00:00:00');
+ dt.setFullYear(dt.getFullYear() + 1);
+ clientes.push({ nome, equipamento, proxima: dt.toISOString() });
+ salvar();
+ res.innerHTML = '<p>✅ Cadastrado</p>';
+ document.getElementById('nome').value='';
+ document.getElementById('equipamento').value='';
+ document.getElementById('data').value='';
+}
+function verAlertas(){
+ const res = document.getElementById('res');
+ if(clientes.length === 0){ res.innerHTML='Nenhum alerta'; return; }
+ let ord = [...clientes].sort((a,b)=> new Date(a.proxima) - new Date(b.proxima)).slice(0,5);
+ res.innerHTML = ord.map(c=>
+   `<div class='alerta'>🔔 ${c.nome}<br>${c.equipamento}<br>${new Date(c.proxima).toLocaleDateString()}</div>`
+ ).join('');
+}
+function verInst(){
+ const res = document.getElementById('res');
+ if(clientes.length === 0){ res.innerHTML='Nenhum cadastro'; return; }
+ res.innerHTML = clientes.map(c=>
+   `<div class='item'>📋 ${c.nome}<br>${c.equipamento}<br>${new Date(c.proxima).toLocaleDateString()}</div>`
+ ).join('');
+}
+function resetar(){
+ const res = document.getElementById('res');
+ if(confirm('Resetar tudo?')){ localStorage.clear(); clientes = []; res.innerHTML=''; }
+}
+
+// ===== FECHADURA =====
+let senha = localStorage.getItem('senha') || '1234';
+let entrada = '';
+let estadoTroca = 'off'; // off | verificar_antiga | nova_senha
+
+function salvarSenha(){ localStorage.setItem('senha', senha); }
+
+function add(n){
+ if(entrada.length >= 6) return;
+ entrada += n;
+ document.getElementById('display').value = entrada;
+}
+
+function limpar(){
+ entrada='';
+ document.getElementById('display').value='';
+}
+
+function verificar(){
+ const status = document.getElementById('status');
+ const hint = document.getElementById('hint');
+
+ if(estadoTroca === 'verificar_antiga'){
+   if(entrada === senha){
+     estadoTroca = 'nova_senha';
+     status.innerHTML = '🔑 Senha atual correta';
+     hint.textContent = 'Digite a NOVA senha e pressione ✔';
+   } else {
+     status.innerHTML = '❌ Senha atual incorreta';
+   }
+   limpar();
+   return;
+ }
+
+ if(estadoTroca === 'nova_senha'){
+   if(entrada.length < 4){
+     status.innerHTML = '⚠️ Use pelo menos 4 dígitos';
+     limpar();
+     return;
+   }
+   senha = entrada;
+   salvarSenha();
+   status.innerHTML = '✅ Senha alterada com sucesso';
+   hint.textContent = '';
+   estadoTroca = 'off';
+   limpar();
+   return;
+ }
+
+ // modo normal
+ if(entrada === senha){
+   status.innerHTML = '🔓 Liberado';
+ } else {
+   status.innerHTML = '❌ Errado';
+ }
+ limpar();
+}
+
+function modoTroca(){
+ estadoTroca = 'verificar_antiga';
+ document.getElementById('status').innerHTML = '🔐 Modo troca de senha';
+ document.getElementById('hint').textContent = 'Digite a senha ATUAL e pressione ✔';
+ limpar();
+}
+
+function cancelarTroca(){
+ estadoTroca = 'off';
+ document.getElementById('status').innerHTML = '';
+ document.getElementById('hint').textContent = '';
+ limpar();
+}
+</script>
+
+</body>
+</html>
