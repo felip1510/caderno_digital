@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema de Manutenção</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      width: 350px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    h2 { text-align: center; }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+    }
+    input { background: #334155; color: white; }
+    button {
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background: #1d4ed8; }
+    .alerta {
+      background: #7f1d1d;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+    .item {
+      background: #1e40af;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Manutenção Anual</h2>
+
+  <input type="text" id="nome" placeholder="Nome do Cliente">
+  <input type="text" id="equipamento" placeholder="Equipamento">
+  <input type="date" id="data">
+
+  <button onclick="adicionarCliente()">Cadastrar</button>
+  <button onclick="verAlertas()">Ver Alertas</button>
+  <button onclick="verInstalacoes()">Ver Instalações</button>
+  <button onclick="limparDados()">Resetar Sistema</button>
+
+  <div id="resultado"></div>
+</div>
+
+<script>
+  function carregarClientes() {
+    try {
+      return JSON.parse(localStorage.getItem('clientes')) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  let clientes = carregarClientes();
+
+  function salvarDados() {
+    localStorage.setItem('clientes', JSON.stringify(clientes));
+  }
+
+  function adicionarCliente() {
+    const nome = document.getElementById('nome').value;
+    const equipamento = document.getElementById('equipamento').value;
+    const data = document.getElementById('data').value;
+
+    if (!nome || !equipamento || !data) {
+      alert('Preencha todos os campos!');
+      return;
+    }
+
+    const dataUltima = new Date(data + 'T00:00:00');
+    const dataProxima = new Date(dataUltima);
+    dataProxima.setFullYear(dataProxima.getFullYear() + 1);
+
+    clientes.push({ nome, equipamento, proxima: dataProxima.toISOString() });
+    salvarDados();
+
+    document.getElementById('resultado').innerHTML =
+      `✅ ${nome} cadastrado! Próxima manutenção: ${dataProxima.toLocaleDateString()}`;
+
+    document.getElementById('nome').value = '';
+    document.getElementById('equipamento').value = '';
+    document.getElementById('data').value = '';
+  }
+
+  function verAlertas() {
+    clientes = carregarClientes();
+
+    let html = '<h3>Próximas 5 Manutenções:</h3>';
+
+    if (clientes.length === 0) {
+      html += '<p>Nenhum cadastro.</p>';
+    } else {
+      const ordenados = [...clientes].sort((a, b) => new Date(a.proxima) - new Date(b.proxima));
+      const proximos = ordenados.slice(0, 5);
+
+      proximos.forEach(c => {
+        const dataFormatada = new Date(c.proxima).toLocaleDateString();
+        html += `<div class="alerta">🔔 ${c.nome} | ${c.equipamento} | Vence em: ${dataFormatada}</div>`;
+      });
+    }
+
+    document.getElementById('resultado').innerHTML = html;
+  }
+
+  function verInstalacoes() {
+    clientes = carregarClientes();
+
+    let html = '<h3>Instalações:</h3>';
+
+    if (clientes.length === 0) {
+      html += '<p>Nenhum cadastro.</p>';
+    } else {
+      clientes.forEach(c => {
+        const dataFormatada = new Date(c.proxima).toLocaleDateString();
+        html += `<div class="item">📋 ${c.nome} | ${c.equipamento} | Próxima: ${dataFormatada}</div>`;
+      });
+    }
+
+    document.getElementById('resultado').innerHTML = html;
+  }
+
+  function limparDados() {
+    const confirmar = confirm('Tem certeza que deseja RESETAR todo o sistema?');
+
+    if (confirmar) {
+      localStorage.clear();
+      clientes = [];
+
+      document.getElementById('resultado').innerHTML = '<p>✅ Sistema totalmente limpo.</p>';
+      document.getElementById('nome').value = '';
+      document.getElementById('equipamento').value = '';
+      document.getElementById('data').value = '';
+    }
+  }
+</script>
+
+</body>
+</html>
