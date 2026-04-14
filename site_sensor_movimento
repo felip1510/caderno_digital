@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Sensor de Movimento Pro</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0f172a;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.container{
+  background:#1e293b;
+  padding:30px;
+  border-radius:16px;
+  text-align:center;
+  width:400px;
+  box-shadow:0 0 30px rgba(0,0,0,0.6);
+}
+
+h2{
+  margin-bottom:10px;
+}
+
+#status{
+  margin-bottom:15px;
+  font-size:18px;
+}
+
+/* ÁREA DO SENSOR */
+.sensor{
+  position:relative;
+  width:100%;
+  height:220px;
+  border-radius:12px;
+  background:#020617;
+  overflow:hidden;
+  cursor:pointer;
+}
+
+/* RADAR ANIMADO */
+.radar{
+  position:absolute;
+  width:200%;
+  height:200%;
+  top:-50%;
+  left:-50%;
+  background:conic-gradient(
+    rgba(34,197,94,0.6) 0deg,
+    rgba(34,197,94,0.2) 60deg,
+    transparent 120deg
+  );
+  animation:girar 3s linear infinite;
+}
+
+@keyframes girar{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+
+/* CÍRCULO CENTRAL */
+.centro{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  background:#1e293b;
+  border:2px solid #22c55e;
+}
+
+/* EFEITO DETECÇÃO */
+.detectado{
+  background:#22c55e !important;
+  box-shadow:0 0 20px #22c55e;
+}
+
+/* LUZ */
+.luz{
+  margin-top:15px;
+  padding:15px;
+  border-radius:10px;
+  background:#111827;
+}
+
+.ligada{
+  background:#facc15;
+  color:black;
+  font-weight:bold;
+  box-shadow:0 0 20px #facc15;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+  <h2>📡 Sensor de Movimento</h2>
+  <div id="status">Sem movimento</div>
+
+  <div class="sensor" id="area">
+    <div class="radar"></div>
+    <div class="centro"></div>
+  </div>
+
+  <div id="luz" class="luz">💡 Luz Desligada</div>
+</div>
+
+<script>
+const area = document.getElementById('area');
+const status = document.getElementById('status');
+const luz = document.getElementById('luz');
+
+let timeout;
+
+area.addEventListener('mousemove', () => {
+  status.innerText = "🔔 Movimento detectado!";
+  area.classList.add('detectado');
+  
+  luz.innerText = "💡 Luz Ligada";
+  luz.classList.add('ligada');
+
+  clearTimeout(timeout);
+
+  timeout = setTimeout(() => {
+    status.innerText = "Sem movimento";
+    area.classList.remove('detectado');
+    
+    luz.innerText = "💡 Luz Desligada";
+    luz.classList.remove('ligada');
+  }, 2500);
+});
+</script>
+
+</body>
+</html>
