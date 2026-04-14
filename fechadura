@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Fechadura Digital</title>
+<style>
+body{
+  font-family:Arial;
+  background:#0f172a;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.container{
+  background:#1e293b;
+  padding:20px;
+  border-radius:12px;
+  width:260px;
+  text-align:center;
+}
+input{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:8px;
+  border:none;
+  background:#334155;
+  color:white;
+  text-align:center;
+  font-size:18px;
+}
+.row{display:flex;justify-content:center;}
+.btn{
+  width:60px;
+  height:60px;
+  margin:5px;
+  border:none;
+  border-radius:10px;
+  background:#2563eb;
+  color:white;
+  font-size:18px;
+  cursor:pointer;
+}
+button{margin-top:10px}
+.small{font-size:12px;opacity:.8}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h3>🔒 Fechadura</h3>
+
+<input id="display" disabled>
+
+<div class="row">
+<button class="btn" onclick="add('1')">1</button>
+<button class="btn" onclick="add('2')">2</button>
+<button class="btn" onclick="add('3')">3</button>
+</div>
+<div class="row">
+<button class="btn" onclick="add('4')">4</button>
+<button class="btn" onclick="add('5')">5</button>
+<button class="btn" onclick="add('6')">6</button>
+</div>
+<div class="row">
+<button class="btn" onclick="add('7')">7</button>
+<button class="btn" onclick="add('8')">8</button>
+<button class="btn" onclick="add('9')">9</button>
+</div>
+<div class="row">
+<button class="btn" onclick="limpar()">C</button>
+<button class="btn" onclick="add('0')">0</button>
+<button class="btn" onclick="verificar()">✔</button>
+</div>
+
+<button onclick="modoTroca()">Trocar Senha</button>
+<button onclick="cancelarTroca()">Cancelar</button>
+
+<div id="status"></div>
+<p class="small" id="hint"></p>
+</div>
+
+<script>
+let senha = localStorage.getItem('senha') || '1234';
+let entrada = '';
+let estadoTroca = 'off';
+
+function salvarSenha(){
+  localStorage.setItem('senha', senha);
+}
+
+function add(n){
+  if(entrada.length >= 6) return;
+  entrada += n;
+  document.getElementById('display').value = entrada;
+}
+
+function limpar(){
+  entrada='';
+  document.getElementById('display').value='';
+}
+
+function verificar(){
+  const status = document.getElementById('status');
+  const hint = document.getElementById('hint');
+
+  if(estadoTroca === 'verificar_antiga'){
+    if(entrada === senha){
+      estadoTroca = 'nova_senha';
+      status.innerHTML = '🔑 Senha atual correta';
+      hint.textContent = 'Digite a NOVA senha e pressione ✔';
+    } else {
+      status.innerHTML = '❌ Senha atual incorreta';
+    }
+    limpar();
+    return;
+  }
+
+  if(estadoTroca === 'nova_senha'){
+    if(entrada.length < 4){
+      status.innerHTML = '⚠️ Use pelo menos 4 dígitos';
+      limpar();
+      return;
+    }
+    senha = entrada;
+    salvarSenha();
+    status.innerHTML = '✅ Senha alterada';
+    hint.textContent = '';
+    estadoTroca = 'off';
+    limpar();
+    return;
+  }
+
+  if(entrada === senha){
+    status.innerHTML = '🔓 Liberado';
+  } else {
+    status.innerHTML = '❌ Errado';
+  }
+  limpar();
+}
+
+function modoTroca(){
+  estadoTroca = 'verificar_antiga';
+  document.getElementById('status').innerHTML = '🔐 Modo troca';
+  document.getElementById('hint').textContent = 'Digite a senha atual e pressione ✔';
+  limpar();
+}
+
+function cancelarTroca(){
+  estadoTroca = 'off';
+  document.getElementById('status').innerHTML = '';
+  document.getElementById('hint').textContent = '';
+  limpar();
+}
+</script>
+
+</body>
+</html>
