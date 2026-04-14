@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Olho Mágico (Rua com Casas)</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0f172a;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.container{
+  display:flex;
+  gap:80px;
+}
+
+.bloco{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:240px;
+}
+
+.porta{
+  width:240px;
+  height:420px;
+  background:linear-gradient(145deg,#78350f,#5b2c06);
+  border-radius:12px;
+  position:relative;
+}
+
+.macaneta{
+  position:absolute;
+  right:20px;
+  top:65%;
+  width:18px;
+  height:18px;
+  background:#facc15;
+  border-radius:50%;
+}
+
+.camera{
+  width:60px;
+  height:60px;
+  background:#020617;
+  border-radius:50%;
+  border:4px solid #64748b;
+  position:absolute;
+  right:-30px;
+  top:30%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.lente{
+  width:25px;
+  height:25px;
+  border-radius:50%;
+  background:radial-gradient(circle,#22c55e,#020617);
+}
+
+.visor{
+  position:absolute;
+  top:30%;
+  left:50%;
+  transform:translateX(-50%);
+  width:200px;
+  height:130px;
+  border-radius:12px;
+  overflow:hidden;
+  border:3px solid #334155;
+  background:black;
+}
+
+/* ✅ IMAGEM: RUA COM CASAS DO OUTRO LADO */
+.video{
+  width:100%;
+  height:100%;
+  background:url('https://i.pinimg.com/736x/f5/e0/76/f5e0761e0168a20b432e592790bee08d.jpg') center/cover;
+
+  /* efeito olho mágico */
+  transform:scale(1.2);
+  filter:
+    brightness(0.7)
+    contrast(1.3)
+    saturate(1.2);
+
+  border-radius:20%;
+  transition:0.3s;
+}
+
+.ativo .video{
+  transform:scale(1.3);
+  filter:
+    brightness(1)
+    contrast(1.4)
+    saturate(1.3);
+}
+
+.visor::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:12px;
+  box-shadow:inset 0 0 25px rgba(0,0,0,0.8);
+}
+
+.overlay{
+  position:absolute;
+  bottom:5px;
+  width:100%;
+  text-align:center;
+  font-size:13px;
+  background:rgba(0,0,0,0.5);
+  padding:4px;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+  <!-- FORA -->
+  <div class="bloco">
+    <h3>Lado de Fora</h3>
+    <p>Passe o mouse aqui</p>
+
+    <div class="porta" id="fora">
+      <div class="camera">
+        <div class="lente"></div>
+      </div>
+      <div class="macaneta"></div>
+    </div>
+  </div>
+
+  <!-- DENTRO -->
+  <div class="bloco">
+    <h3>Lado de Dentro</h3>
+    <p style="opacity:0;">.</p>
+
+    <div class="porta">
+      <div class="visor" id="visor">
+        <div class="video"></div>
+        <div class="overlay">Sem movimento</div>
+      </div>
+      <div class="macaneta"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const fora = document.getElementById('fora');
+const visor = document.getElementById('visor');
+const overlay = visor.querySelector('.overlay');
+
+let timeout;
+
+fora.addEventListener('mousemove', () => {
+  visor.classList.add('ativo');
+  overlay.innerText = "👤 Movimento na rua";
+
+  clearTimeout(timeout);
+
+  timeout = setTimeout(() => {
+    visor.classList.remove('ativo');
+    overlay.innerText = "Sem movimento";
+  }, 2500);
+});
+</script>
+
+</body>
+</html>
